@@ -2,25 +2,36 @@ import React, { useState, useEffect } from 'react'
 
 const SearchIssues = () => {
 
-    const [search, setSearch] = useState('');
-    const [text, setText] = useState("")
+    const [search, setSearch] = useState('bug');
+    const [text, setText] = useState('')
     const [resultado, setResultado] = useState([]);
+    let arreglo = [];
+    
+    useEffect( () => {
+        getData();
+    },[])
 
-    useEffect(() => {
+    const getData = async () => {
+        const url = `https://api.github.com/search/issues?q=${search}`;
+        const resp = await fetch(url);
+        const data = await resp.json();
+        const issues = await data.items.map( issue => {
+            arreglo.push({
+                id: issue.id, 
+                title: issue.title, 
+                labels:issue.labels
+            })
+        })
+        console.log(arreglo)
+        setResultado(arreglo)
+    }
 
-        const fetchingData = async () => {
-            const data = await fetch(`https://api.github.com/search/issues?q=${search}`)
-            const issues = await data.json();
-            console.log(issues.items)
-            return issues.items
-            
-        }
-        fetchingData().then((response)=>{setResultado(response.items)});
-    }, [search])
+
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        setSearch(text)
+        getData()
+        console.log(text)
     }
 
     const handleChange = e => { setText(e.target.value) }
@@ -31,7 +42,7 @@ const SearchIssues = () => {
             </form>
             <div>
                 <ul>
-                    {resultado ? resultado.map((el) => (<li key={el.id}><span>{el.title}, {el.labels}</span></li>)) : <span>{resultado} </span>}
+                    {resultado.length > 1 ? resultado?.map((item) => (<li key={item.id}><span>{item.title}, {item.labels}</span></li>)) : <span>No Results</span>}
                 </ul>
             </div>
         </div>
